@@ -4,10 +4,20 @@ const app = express();
 require('dotenv').config();
 const botToken = process.env.BOT_TOKEN; 
 const telebot = require('node-telegram-bot-api');
-const bot = new telebot(botToken, {polling: true});
+var bot; 
+if (process.env.NODE_ENV === 'production') {
+    bot = new telebot(token);
+    bot.setWebHook(process.env.HEROKU_URL + botToken);
+}
+else {
+    bot = new telebot(botToken, { polling: true });
+}
 
 require('timers');
 const Sugar = require('sugar-date');
+
+const bodyParser = require('body-parser');
+app.use(bodyParser.json());
 
 // parse time into ms 
 function getTime(time) {
@@ -67,6 +77,14 @@ bot.onText(/\/timer (.+)/, (msg, match) => {
     setTimeout(remind, time, chatID, message);
 });
 
-app.listen(3000, function() {
-    console.log("app listening on port 3000");
-})
+var server = app.listen(process.env.PORT, function () {
+  var host = server.address().address;
+  var port = server.address().port;
+
+  console.log('Web server started at http://%s:%s', host, port);
+});
+
+app.post('/' + botToken, function (req, res) {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
