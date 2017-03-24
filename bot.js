@@ -17,7 +17,6 @@ console.log('Bot server started in the ' + process.env.NODE_ENV + ' mode');
 
 // parse time into ms 
 function getTime(time) {
-    console.log("getting time");
     function parseTime(regexp) {
         var t = time.match(regexp);
         return t ? parseInt((t[0].match(/\d+/))[0]) : 0; 
