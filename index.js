@@ -24,16 +24,17 @@ function getTime(time) {
     return ((((h*60) + m)*60) + s) * 1000; 
 }
 
-function getDate(reminder) {
-    const date = reminder.substr(0, reminder.indexOf(' '));
+// parse date into ms duration 
+function getDate(reminder, delimiter) {
+    const date = reminder.substr(0, reminder.indexOf(delimiter));
     const now = Date.parse(new Date()); 
     
     const later = Date.parse(Sugar.Date(date).raw); 
     return (later - now > 0) ? later-now : 0; 
 }
 
-function getMsg(reminder) {
-    return reminder.substr(reminder.indexOf(' ')+1);
+function getMsg(reminder, delimiter) {
+    return reminder.substr(reminder.indexOf(delimiter) + delimiter.length);
 }
 
 function remind(chatID, message) {
@@ -41,12 +42,15 @@ function remind(chatID, message) {
 }
 
 // remind by date / time 
+// date can be natural language (eg tomorrow 4pm) as defined by sugar-date
+// requires ' / ' between date and language if date has whitespace
 bot.onText(/\/remindme (.+)/, (msg, match) => {
     const chatID = msg.chat.id; 
     const reminder = match[1]; 
+    const delimiter = reminder.search(/\s\/\s/) > 0 ? ' / ' : ' '; 
 
-    const time = getDate(reminder); 
-    const message = getMsg(reminder); 
+    const time = getDate(reminder, delimiter); 
+    const message = getMsg(reminder, delimiter); 
 
     setTimeout(remind, time, chatID, message);
 });
@@ -58,7 +62,7 @@ bot.onText(/\/timer (.+)/, (msg, match) => {
     const reminder = match[1]; 
 
     const time = getTime(reminder);
-    const message = getMsg(reminder); 
+    const message = getMsg(reminder, ' '); 
 
     setTimeout(remind, time, chatID, message);
 });
